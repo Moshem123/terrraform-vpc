@@ -18,8 +18,10 @@ resource "aws_instance" "pingtester" {
 
   user_data = <<EOF
 #!/bin/bash
-sleep 20
-ping -c5 ${local.private_ips[tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...))]} | tee /var/log/ping-output.log
+sleep 60
+destination_ip=${local.private_ips[tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...))]}
+echo "Performing ping test to $destination_ip" | tee -a /var/log/ping-output.log
+ping -c5 $destination_ip | tee -a /var/log/ping-output.log
 EOF
 
   tags = { Name = "PingTester-vpc${index(var.vpc_cidrs, each.value)}" }
