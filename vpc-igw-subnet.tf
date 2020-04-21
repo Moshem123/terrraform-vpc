@@ -1,5 +1,5 @@
 locals {
-  subnet_cidrs = {for s in var.vpc_cidrs: s => cidrsubnet(s, 8, 0)}
+  subnet_cidrs = { for s in var.vpc_cidrs : s => cidrsubnet(s, 8, 0) }
 }
 
 resource "aws_vpc" "vpc" {
@@ -18,7 +18,6 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_subnet" "subnet" {
   for_each                = toset(var.vpc_cidrs)
   vpc_id                  = aws_vpc.vpc[each.value].id
-  # cidr_block              = cidrsubnet(each.value, 8, 1)
   cidr_block              = local.subnet_cidrs[each.value]
   map_public_ip_on_launch = true
 
@@ -35,7 +34,7 @@ resource "aws_vpc_peering_connection" "cross_vpc_traffic" {
 
 resource "aws_route_table" "rt" {
   for_each = toset(var.vpc_cidrs)
-  vpc_id = aws_vpc.vpc[each.value].id
+  vpc_id   = aws_vpc.vpc[each.value].id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -43,7 +42,7 @@ resource "aws_route_table" "rt" {
   }
 
   route {
-    cidr_block = tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...))
+    cidr_block                = tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...))
     vpc_peering_connection_id = aws_vpc_peering_connection.cross_vpc_traffic.id
   }
 
@@ -51,7 +50,7 @@ resource "aws_route_table" "rt" {
 }
 
 resource "aws_route_table_association" "assoc" {
-  for_each = toset(var.vpc_cidrs)
+  for_each       = toset(var.vpc_cidrs)
   subnet_id      = aws_subnet.subnet[each.value].id
   route_table_id = aws_route_table.rt[each.value].id
 }
