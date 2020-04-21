@@ -7,6 +7,10 @@
 ssh-keygen -t rsa -f ~/.ssh/terraform -q -P ""
 ```
 - Have a working set of credentials to a working AWS account
+- Install jq
+```
+brew install jq
+```
 
 ## Provisioning
 ```
