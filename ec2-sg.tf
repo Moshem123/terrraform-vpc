@@ -18,7 +18,7 @@ resource "aws_instance" "pingtester" {
 
   user_data = <<EOF
 #!/bin/bash
-#ping -c5 ${cidrhost(tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...)), 10)} | tee /var/log/ping-output.log
+sleep 20
 ping -c5 ${local.private_ips[tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...))]} | tee /var/log/ping-output.log
 EOF
 
@@ -44,7 +44,7 @@ resource "aws_security_group" "allow_peering_traffic" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["31.168.15.126/32"]
+    cidr_blocks = [var.personal_public_ip]
   }
 
   egress {

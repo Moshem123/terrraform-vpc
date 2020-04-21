@@ -12,3 +12,7 @@ variable "amis" {
     "us-west-2" = "ami-4b32be2b"
   }
 }
+
+variable "personal_public_ip" {
+  default = "0.0.0.0/0"
+}

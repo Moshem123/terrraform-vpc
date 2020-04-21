@@ -15,7 +15,7 @@ brew install jq
 ## Provisioning
 ```
 terraform init
-terraform apply
+terraform apply -var="personal_public_ip=$(curl -s icanhazip.com)/32"
 ```
 
 ### Test the script's output
