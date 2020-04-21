@@ -1,3 +1,7 @@
+locals {
+  private_ips = {for k,v in local.subnet_cidrs: k => cidrhost(v, 10)}
+}
+
 resource "aws_key_pair" "terraformUser" {
   key_name   = "terraformUser"
   public_key = file("~/.ssh/terraform.pub")
@@ -8,10 +12,23 @@ resource "aws_instance" "pingtester" {
   ami           = var.amis[var.region]
   instance_type = var.instance_type
   key_name      = aws_key_pair.terraformUser.key_name
-  subnet_id = aws_subnet.subnet[each.value].id
-  # user_data = <<EOF
-  # ping -c5 ${aws_instance.pingtester[each.value].private_ip}
-  # EOF
+  # private_ip    = cidrhost(local.subnet_cidrs[each.value],10)
+  private_ip    = local.private_ips[each.value]
+  subnet_id     = aws_subnet.subnet[each.value].id
+  
+  user_data = <<EOF
+#!/bin/bash
+#ping -c5 ${cidrhost(tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...)),10)} | tee /var/log/ping-output.log
+ping -c5 ${local.private_ips[tostring(coalesce(setsubtract(var.vpc_cidrs, list(each.value))...))]} | tee /var/log/ping-output.log
+EOF
+
+  tags = { Name = "PingTester-vpc${index(var.vpc_cidrs, each.value)}" }
+
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "ping -c5 ${aws_instance.pingtester[each.value].private_ip}"
+  #   ]
+  # }
 }
 
 resource "aws_security_group" "allow_peering_traffic" {

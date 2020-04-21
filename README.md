@@ -11,3 +11,4 @@ ssh-keygen -t rsa -f ~/.ssh/terraform -q -P ""
 ```
 terraform init
 terraform apply
+```

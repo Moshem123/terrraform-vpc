@@ -1,3 +1,7 @@
+locals {
+  subnet_cidrs = {for s in var.vpc_cidrs: s => cidrsubnet(s, 8, 0)}
+}
+
 resource "aws_vpc" "vpc" {
   for_each             = toset(var.vpc_cidrs)
   cidr_block           = each.value
@@ -14,7 +18,8 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_subnet" "subnet" {
   for_each                = toset(var.vpc_cidrs)
   vpc_id                  = aws_vpc.vpc[each.value].id
-  cidr_block              = cidrsubnet(each.value, 8, 1)
+  # cidr_block              = cidrsubnet(each.value, 8, 1)
+  cidr_block              = local.subnet_cidrs[each.value]
   map_public_ip_on_launch = true
 
   depends_on = [aws_internet_gateway.gw]
